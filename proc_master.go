@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -22,7 +23,7 @@ import (
 
 var tmpBinPath = filepath.Join(os.TempDir(), "overseer-"+token()+extension())
 
-//a overseer master process
+// a overseer master process
 type master struct {
 	*Config
 	slaveID             int
@@ -176,7 +177,7 @@ func (mp *master) retreiveFileDescriptors() error {
 	return nil
 }
 
-//fetchLoop is run in a goroutine
+// fetchLoop is run in a goroutine
 func (mp *master) fetchLoop() {
 	min := mp.Config.MinFetchInterval
 	time.Sleep(min)
@@ -288,7 +289,7 @@ func (mp *master) fetch() {
 		mp.warnf("failed to run temp binary: %s (%s) output \"%s\"", err, tmpBinPath, tokenOut)
 		return
 	}
-	if tokenIn != string(tokenOut) {
+	if !strings.Contains(string(tokenOut), tokenIn) {
 		mp.warnf("sanity check failed")
 		return
 	}
@@ -331,7 +332,7 @@ func (mp *master) triggerRestart() {
 	}
 }
 
-//not a real fork
+// not a real fork
 func (mp *master) forkLoop() error {
 	//loop, restart command
 	for {
